@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/ADahjer/egocomerce/types"
 	"github.com/go-playground/validator/v10"
@@ -28,6 +29,8 @@ func ApiErrorHandler(err error, c echo.Context) {
 				errsMsg = append(errsMsg, fmt.Sprintf("%s should be at least %s characters long", err.Field(), err.Param()))
 			case "required":
 				errsMsg = append(errsMsg, fmt.Sprintf("%s field is required", err.Field()))
+			case "email":
+				errsMsg = append(errsMsg, fmt.Sprintf("%s field should be a valid email", err.Field()))
 			default:
 				errsMsg = append(errsMsg, err.Error())
 			}
@@ -39,4 +42,17 @@ func ApiErrorHandler(err error, c echo.Context) {
 		c.JSON(http.StatusInternalServerError, types.Map{"Error": err.Error()})
 	}
 
+}
+
+func ValidatePassword(candidate string) bool {
+	if len(candidate) < 8 {
+		return false
+	}
+
+	lowercase := regexp.MustCompile(`[a-z]`).MatchString(candidate)
+	uppercase := regexp.MustCompile(`[A-Z]`).MatchString(candidate)
+	number := regexp.MustCompile(`\d`).MatchString(candidate)
+	specialChar := regexp.MustCompile(`[\W_]`).MatchString(candidate)
+
+	return lowercase && uppercase && number && specialChar
 }
