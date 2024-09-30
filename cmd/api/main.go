@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/ADahjer/egocomerce/utils"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -17,6 +18,8 @@ func main() {
 
 	e.Use(middleware.LoggerWithConfig(*loggerConfig))
 	e.Use(middleware.Recover())
+
+	e.HTTPErrorHandler = utils.ApiErrorHandler
 
 	e.Logger.Fatal(e.Start(":3000"))
 
