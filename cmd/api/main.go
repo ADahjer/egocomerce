@@ -2,7 +2,9 @@ package main
 
 import (
 	"github.com/ADahjer/egocomerce/pkg/user"
+	"github.com/ADahjer/egocomerce/types"
 	"github.com/ADahjer/egocomerce/utils"
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -21,7 +23,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.HTTPErrorHandler = utils.ApiErrorHandler
-	e.Validator = &utils.CustomValidator{}
+	e.Validator = &types.CustomValidator{Validator: validator.New()}
 
 	api := e.Group("/api/v1")
 	user.RegisterRoutes(api)

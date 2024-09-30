@@ -1,5 +1,7 @@
 package types
 
+import "github.com/go-playground/validator/v10"
+
 type Map map[string]any
 
 type ApiError struct {
@@ -16,4 +18,12 @@ func NewApiError(status int, msg string) ApiError {
 		Status: status,
 		Msg:    msg,
 	}
+}
+
+type CustomValidator struct {
+	Validator *validator.Validate
+}
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	return cv.Validator.Struct(i)
 }
