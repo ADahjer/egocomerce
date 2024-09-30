@@ -8,6 +8,7 @@ import (
 	"github.com/ADahjer/egocomerce/types"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func ApiErrorHandler(err error, c echo.Context) {
@@ -55,4 +56,23 @@ func ValidatePassword(candidate string) bool {
 	specialChar := regexp.MustCompile(`[\W_]`).MatchString(candidate)
 
 	return lowercase && uppercase && number && specialChar
+}
+
+func HashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+
+	return string(hash), nil
+}
+
+func ComparePassword(candidate string, hash []byte) (bool, error) {
+	err := bcrypt.CompareHashAndPassword(hash, []byte(candidate))
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
