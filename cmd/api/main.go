@@ -1,15 +1,18 @@
 package main
 
 import (
+	"github.com/ADahjer/egocomerce/database"
 	"github.com/ADahjer/egocomerce/pkg/user"
 	"github.com/ADahjer/egocomerce/types"
 	"github.com/ADahjer/egocomerce/utils"
 	"github.com/go-playground/validator/v10"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
+	godotenv.Load()
 
 	e := echo.New()
 	e.HideBanner = true
@@ -24,6 +27,9 @@ func main() {
 
 	e.HTTPErrorHandler = utils.ApiErrorHandler
 	e.Validator = &types.CustomValidator{Validator: validator.New()}
+
+	database.NewStore()
+	user.InitRepo()
 
 	api := e.Group("/api/v1")
 	user.RegisterRoutes(api)
