@@ -9,6 +9,14 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type CustomValidator struct {
+	Validator *validator.Validate
+}
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	return cv.Validator.Struct(i)
+}
+
 func ApiErrorHandler(err error, c echo.Context) {
 
 	switch e := err.(type) {

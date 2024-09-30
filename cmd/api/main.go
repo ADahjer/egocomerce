@@ -21,6 +21,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.HTTPErrorHandler = utils.ApiErrorHandler
+	e.Validator = &utils.CustomValidator{}
 
 	api := e.Group("/api/v1")
 	user.RegisterRoutes(api)
