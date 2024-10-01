@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 
@@ -12,8 +13,8 @@ import (
 )
 
 type Store struct {
-	FireApp  *firebase.App
-	FireAuth *auth.Client
+	FireAuth  *auth.Client
+	FireStore *firestore.Client
 }
 
 var Firebase *Store
@@ -31,9 +32,14 @@ func NewStore() (*Store, error) {
 		return nil, fmt.Errorf("error creating Auth client: %v", err)
 	}
 
+	store, err := app.Firestore(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("error creating Firebase client: %v", err)
+	}
+
 	Firebase = &Store{
-		FireApp:  app,
-		FireAuth: client,
+		FireAuth:  client,
+		FireStore: store,
 	}
 
 	return Firebase, nil
