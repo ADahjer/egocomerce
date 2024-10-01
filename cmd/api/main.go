@@ -35,7 +35,7 @@ func main() {
 	user.InitRepo()
 	category.InitRepo()
 
-	api := e.Group("/api/v1")
+	api := e.Group("/v1")
 	user.RegisterRoutes(api)
 
 	categoryRouter := api.Group("/category")
