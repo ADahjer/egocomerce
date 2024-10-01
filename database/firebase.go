@@ -2,12 +2,14 @@ package database
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"path/filepath"
+	"os"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
+	"github.com/ADahjer/egocomerce/types"
 
 	"google.golang.org/api/option"
 )
@@ -20,8 +22,21 @@ type Store struct {
 var Firebase *Store
 
 func NewStore() (*Store, error) {
-	path := filepath.Join("database", "egocomerce.json")
-	opt := option.WithCredentialsFile(path)
+	firebaseKey := os.Getenv("FIREBASE_SERVICE_KEY")
+
+	// Get the downloaded credential.json from json from an env variable and parse it into a json
+	var credentialMap types.Map
+	if err := json.Unmarshal([]byte(firebaseKey), &credentialMap); err != nil {
+		return nil, err
+	}
+
+	credsJson, err := json.Marshal(credentialMap)
+	if err != nil {
+		return nil, err
+	}
+
+	opt := option.WithCredentialsJSON(credsJson)
+
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing app: %v", err)
