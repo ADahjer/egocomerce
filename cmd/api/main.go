@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/ADahjer/egocomerce/database"
 	"github.com/ADahjer/egocomerce/pkg/category"
 	"github.com/ADahjer/egocomerce/pkg/user"
@@ -39,5 +41,11 @@ func main() {
 	categoryRouter := api.Group("/category")
 	category.RegisterRoutes(categoryRouter)
 
-	e.Logger.Fatal(e.Start(":3000"))
+	port := os.Getenv("API_PORT")
+
+	if port == "" {
+		port = "3000"
+	}
+
+	e.Logger.Fatal(e.Start(":" + port))
 }

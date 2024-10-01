@@ -1,0 +1,17 @@
+services:
+
+  api:
+    build:
+      context: . # Ruta del Dockerfile de tu API
+    container_name: go-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000" # Puerto en el que corre tu API en el contenedor
+    volumes:
+      - ./api:/app # Montar el directorio del código de la API en el contenedor
+    networks:
+      - default # Para asegurar que se comunique con otros contenedores si es necesario
+
+networks:
+  default:
+    driver: bridge
