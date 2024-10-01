@@ -44,7 +44,7 @@ func main() {
 	port := os.Getenv("API_PORT")
 
 	if port == "" {
-		port = "3000"
+		port = "5000"
 	}
 
 	e.Logger.Fatal(e.Start(":" + port))

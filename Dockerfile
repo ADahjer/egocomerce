@@ -1,4 +1,4 @@
-FROM golang:1.23.1-bookworm
+FROM golang:1.23.1-alpine
 
 WORKDIR /app
 
@@ -9,6 +9,6 @@ COPY . ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /api ./cmd/api/main.go
 
-EXPOSE 3000
+EXPOSE 5000
 
 CMD [ "/api" ]
