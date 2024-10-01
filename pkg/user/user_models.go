@@ -10,10 +10,3 @@ type LoginUserModel struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=8"`
 }
-
-type UserModel struct {
-	Id       string `json:"id"`
-	UserName string `json:"userName"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}

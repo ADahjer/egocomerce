@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/ADahjer/egocomerce/types"
@@ -12,7 +13,12 @@ import (
 func RegisterRoutes(router *echo.Group) {
 	router.POST("/register", handleRegister)
 	router.POST("/login", handleLogin)
-	router.GET("/profile", handleGetProfile, AuthMiddleware)
+
+	auth := router.Group("")
+	auth.Use(AuthMiddleware)
+
+	auth.GET("/profile", handleGetProfile)
+	auth.POST("/admin/:id", handleSetAdmin, AdminMiddleware)
 }
 
 func handleRegister(c echo.Context) error {
@@ -80,4 +86,14 @@ func handleGetProfile(c echo.Context) error {
 
 	return c.JSON(200, user)
 
+}
+
+func handleSetAdmin(c echo.Context) error {
+	id := c.Param("id")
+	err := s.FireAuth.SetCustomUserClaims(context.Background(), id, types.Map{"admin": true})
+	if err != nil {
+		return err
+	}
+	msg := fmt.Sprintf("user with id %s has become an admin", id)
+	return c.JSON(http.StatusAccepted, types.Map{"Message": msg})
 }
