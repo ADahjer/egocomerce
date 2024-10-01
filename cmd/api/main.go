@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/ADahjer/egocomerce/database"
+	"github.com/ADahjer/egocomerce/pkg/category"
 	"github.com/ADahjer/egocomerce/pkg/user"
 	"github.com/ADahjer/egocomerce/types"
 	"github.com/ADahjer/egocomerce/utils"
@@ -30,9 +31,13 @@ func main() {
 
 	database.NewStore()
 	user.InitRepo()
+	category.InitRepo()
 
 	api := e.Group("/api/v1")
 	user.RegisterRoutes(api)
+
+	categoryRouter := api.Group("/category")
+	category.RegisterRoutes(categoryRouter)
 
 	e.Logger.Fatal(e.Start(":3000"))
 }
