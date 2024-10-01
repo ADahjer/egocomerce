@@ -2,9 +2,7 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/ADahjer/egocomerce/types"
 	"github.com/ADahjer/egocomerce/utils"
@@ -14,7 +12,7 @@ import (
 func RegisterRoutes(router *echo.Group) {
 	router.POST("/register", handleRegister)
 	router.POST("/login", handleLogin)
-	router.GET("/profile", handleGetProfile)
+	router.GET("/profile", handleGetProfile, AuthMiddleware)
 }
 
 func handleRegister(c echo.Context) error {
@@ -74,27 +72,12 @@ func handleLogin(c echo.Context) error {
 
 func handleGetProfile(c echo.Context) error {
 
-	authHeader := c.Request().Header["Authorization"][0]
+	user := c.Get("user")
 
-	if authHeader == "" {
-		return types.NewApiError(http.StatusUnauthorized, "no token provided")
+	if user == nil {
+		return types.NewApiError(http.StatusUnauthorized, "error getting user data from context")
 	}
 
-	if !strings.HasPrefix(authHeader, "Bearer") {
-		return types.NewApiError(http.StatusUnauthorized, "Invalid token format")
-	}
+	return c.JSON(200, user)
 
-	token := strings.TrimPrefix(authHeader, "Bearer ")
-
-	authToken, err := VerifyToken(context.Background(), token)
-	if err != nil {
-		return types.NewApiError(http.StatusUnauthorized, fmt.Sprintf("error verifying token: %v", err))
-	}
-
-	userData, err := GetUSerInfo(context.Background(), authToken.UID)
-	if err != nil {
-		return types.NewApiError(http.StatusInternalServerError, fmt.Sprintf("user not found: %v", err))
-	}
-
-	return c.JSON(http.StatusAccepted, types.Map{"Username": userData.DisplayName, "Email": userData.Email})
 }
