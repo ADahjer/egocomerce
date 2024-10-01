@@ -4,16 +4,22 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/ADahjer/egocomerce/pkg/user"
 	"github.com/ADahjer/egocomerce/types"
 	"github.com/labstack/echo/v4"
 )
 
 func RegisterRoutes(router *echo.Group) {
-	router.POST("/", handleCreate)
 	router.GET("/", handleGetAll)
 	router.GET("/:id", handleGetById)
-	router.DELETE("/:id", handleDelete)
-	router.PUT("/:id", handleUpdate)
+
+	auth := router.Group("")
+	auth.Use(user.AuthMiddleware)
+	auth.Use(user.AdminMiddleware)
+
+	auth.POST("/", handleCreate)
+	auth.DELETE("/:id", handleDelete)
+	auth.PUT("/:id", handleUpdate)
 }
 
 func handleCreate(c echo.Context) error {
