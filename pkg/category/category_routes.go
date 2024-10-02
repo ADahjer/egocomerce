@@ -10,7 +10,7 @@ import (
 )
 
 func RegisterRoutes(router *echo.Group) {
-	router.GET("/", handleGetAll)
+	router.GET("", handleGetAll)
 	router.GET("/:id", handleGetById)
 
 	auth := router.Group("")
