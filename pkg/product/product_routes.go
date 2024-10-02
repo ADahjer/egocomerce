@@ -31,7 +31,14 @@ func handleGetAll(c echo.Context) error {
 }
 
 func handleGetOne(c echo.Context) error {
-	return nil
+	id := c.Param("id")
+
+	prod, err := GetProductById(context.Background(), id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, prod)
 }
 func handleCreate(c echo.Context) error {
 	newProd := new(CreateProductModel)

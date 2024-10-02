@@ -67,3 +67,19 @@ func GetAllProducts(ctx context.Context) ([]ProductModel, error) {
 	return products, nil
 
 }
+
+func GetProductById(ctx context.Context, id string) (*ProductModel, error) {
+	doc, err := s.FireStore.Collection(collectionName).Doc(id).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	prod := &ProductModel{
+		Id:         doc.Ref.ID,
+		Name:       doc.Data()["Name"].(string),
+		Price:      doc.Data()["Price"].(float64),
+		Categories: doc.Data()["Categories"],
+	}
+
+	return prod, nil
+}
