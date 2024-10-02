@@ -5,6 +5,7 @@ import (
 
 	"github.com/ADahjer/egocomerce/database"
 	"github.com/ADahjer/egocomerce/pkg/category"
+	"github.com/ADahjer/egocomerce/pkg/product"
 	"github.com/ADahjer/egocomerce/pkg/user"
 	"github.com/ADahjer/egocomerce/types"
 	"github.com/ADahjer/egocomerce/utils"
@@ -27,6 +28,7 @@ func main() {
 
 	e.Use(middleware.LoggerWithConfig(*loggerConfig))
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
 
 	e.HTTPErrorHandler = utils.ApiErrorHandler
 	e.Validator = &types.CustomValidator{Validator: validator.New()}
@@ -34,12 +36,16 @@ func main() {
 	database.NewStore()
 	user.InitRepo()
 	category.InitRepo()
+	product.InitRepo()
 
 	api := e.Group("/v1")
 	user.RegisterRoutes(api)
 
 	categoryRouter := api.Group("/category")
 	category.RegisterRoutes(categoryRouter)
+
+	productRouter := api.Group("/product")
+	product.RegisterRoutes(productRouter)
 
 	port := os.Getenv("API_PORT")
 
