@@ -184,6 +184,8 @@ func GetProductsByCategorie(ctx context.Context, categorieID string) ([]ProductM
 			return nil, err
 		}
 
+		product.Id = doc.Ref.ID
+
 		products = append(products, product)
 
 	}
