@@ -82,7 +82,14 @@ func handleCreate(c echo.Context) error {
 }
 
 func handleDelete(c echo.Context) error {
-	return nil
+	id := c.Param("id")
+
+	isDeleted, err := DeleteProduct(context.Background(), id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, types.Map{"deleted": isDeleted})
 }
 
 func handleUpdate(c echo.Context) error {

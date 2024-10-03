@@ -6,6 +6,7 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	"github.com/ADahjer/egocomerce/database"
@@ -126,4 +127,41 @@ func GetProductById(ctx context.Context, id string) (*ProductModel, error) {
 	}
 
 	return prod, nil
+}
+
+func DeleteProduct(ctx context.Context, id string) (bool, error) {
+	product, err := GetProductById(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	// delete image form storage
+	_, err = deleteImage(ctx, product.Image)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = s.FireStore.Collection(collectionName).Doc(id).Delete(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func deleteImage(ctx context.Context, imageUrl string) (bool, error) {
+	parts := strings.Split(imageUrl, "/")
+	imageName := fmt.Sprintf("products/%s", parts[len(parts)-1])
+
+	bucketname := os.Getenv("STORAGE_BUCKET")
+	bucket, err := s.FireStorage.Bucket(bucketname)
+	if err != nil {
+		return false, err
+	}
+
+	if err := bucket.Object(imageName).Delete(ctx); err != nil {
+		return false, fmt.Errorf("error deleting the object: %s", imageName)
+	}
+
+	return true, err
 }
