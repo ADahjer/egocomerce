@@ -97,5 +97,11 @@ func handleUpdate(c echo.Context) error {
 }
 
 func handleGetByCategorie(c echo.Context) error {
-	return nil
+	categoryID := c.Param("id")
+	products, err := GetProductsByCategorie(context.Background(), categoryID)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, products)
 }

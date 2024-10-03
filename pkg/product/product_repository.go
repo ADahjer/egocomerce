@@ -165,3 +165,28 @@ func deleteImage(ctx context.Context, imageUrl string) (bool, error) {
 
 	return true, err
 }
+
+func GetProductsByCategorie(ctx context.Context, categorieID string) ([]ProductModel, error) {
+	iter := s.FireStore.Collection(collectionName).Where("Categories", "array-contains", categorieID).Documents(ctx)
+	var products []ProductModel
+
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		var product ProductModel
+		if err := doc.DataTo(&product); err != nil {
+			return nil, err
+		}
+
+		products = append(products, product)
+
+	}
+
+	return products, nil
+}
