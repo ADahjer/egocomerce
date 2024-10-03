@@ -2,9 +2,16 @@ package product
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"io"
+	"mime/multipart"
+	"os"
 
+	"cloud.google.com/go/storage"
 	"github.com/ADahjer/egocomerce/database"
 	"github.com/ADahjer/egocomerce/pkg/category"
+	"github.com/google/uuid"
 	"google.golang.org/api/iterator"
 )
 
@@ -16,7 +23,34 @@ func InitRepo() {
 	s = database.Firebase
 }
 
-func CreateProduct(ctx context.Context, product CreateProductModel) (string, error) {
+func UploadProductImage(ctx context.Context, image multipart.File) (string, error, *storage.ObjectHandle) {
+	imageName := fmt.Sprintf("products/%s", uuid.New().String())
+	bucketName := os.Getenv("STORAGE_BUCKET")
+	bucket, err := s.FireStorage.Bucket(bucketName)
+	if err != nil {
+		return "", err, nil
+	}
+
+	wc := bucket.Object(imageName).NewWriter(ctx)
+	if _, err := io.Copy(wc, image); err != nil {
+		return "", errors.New("error 3"), nil
+	}
+
+	if err := wc.Close(); err != nil {
+		return "", errors.New("error 4"), nil
+	}
+
+	o := bucket.Object(imageName)
+	if err := o.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
+		return "", errors.New("error 5"), nil
+	}
+
+	imageUrl := fmt.Sprintf("http://storage.googleapis.com/%s/%s", bucketName, imageName)
+
+	return imageUrl, nil, o
+}
+
+func CreateProduct(ctx context.Context, product CreateProductModel, image multipart.File) (string, error) {
 
 	for _, c := range product.Categories {
 		_, err := category.GetCategoryById(ctx, c)
@@ -25,12 +59,21 @@ func CreateProduct(ctx context.Context, product CreateProductModel) (string, err
 		}
 	}
 
-	docRef, _, err := s.FireStore.Collection(collectionName).Add(ctx, &CreateProductModel{
+	imageName, err, o := UploadProductImage(ctx, image)
+	if err != nil {
+		return "", err
+	}
+
+	docRef, _, err := s.FireStore.Collection(collectionName).Add(ctx, &ProductModel{
+		Image:      imageName,
 		Name:       product.Name,
 		Price:      product.Price,
 		Categories: product.Categories,
 	})
 	if err != nil {
+		if delErr := o.Delete(ctx); delErr != nil {
+			return "", err
+		}
 		return "", err
 	}
 

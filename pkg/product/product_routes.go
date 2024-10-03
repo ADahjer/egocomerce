@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ADahjer/egocomerce/types"
+	"github.com/ADahjer/egocomerce/utils"
 	"github.com/labstack/echo/v4"
 )
 
@@ -42,6 +43,25 @@ func handleGetOne(c echo.Context) error {
 }
 func handleCreate(c echo.Context) error {
 	newProd := new(CreateProductModel)
+	file, err := c.FormFile("image")
+
+	msg, validFile := utils.ValidateImageType(file)
+	if !validFile {
+		return types.NewApiError(http.StatusBadRequest, msg)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+
+	defer src.Close()
+
+	newProd.Image = src
 
 	if err := c.Bind(newProd); err != nil {
 		return err
@@ -51,7 +71,7 @@ func handleCreate(c echo.Context) error {
 		return err
 	}
 
-	ref, err := CreateProduct(context.Background(), *newProd)
+	ref, err := CreateProduct(context.Background(), *newProd, src)
 	if err != nil {
 		return err
 	}
