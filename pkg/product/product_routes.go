@@ -12,6 +12,7 @@ import (
 func RegisterRoutes(router *echo.Group) {
 	router.GET("", handleGetAll)
 	router.GET("/:id", handleGetOne)
+	router.GET("/category/:id", handleGetByCategorie)
 	router.POST("", handleCreate)
 	router.DELETE("/:id", handleDelete)
 	router.PUT("/:id", handleUpdate)
@@ -41,6 +42,7 @@ func handleGetOne(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, prod)
 }
+
 func handleCreate(c echo.Context) error {
 	newProd := new(CreateProductModel)
 	file, err := c.FormFile("image")
@@ -78,9 +80,15 @@ func handleCreate(c echo.Context) error {
 
 	return c.JSON(http.StatusCreated, types.Map{"Message": "Product created", "id": ref})
 }
+
 func handleDelete(c echo.Context) error {
 	return nil
 }
+
 func handleUpdate(c echo.Context) error {
+	return nil
+}
+
+func handleGetByCategorie(c echo.Context) error {
 	return nil
 }

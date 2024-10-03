@@ -2,7 +2,6 @@ package product
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -23,31 +22,31 @@ func InitRepo() {
 	s = database.Firebase
 }
 
-func UploadProductImage(ctx context.Context, image multipart.File) (string, error, *storage.ObjectHandle) {
+func UploadProductImage(ctx context.Context, image multipart.File) (string, *storage.ObjectHandle, error) {
 	imageName := fmt.Sprintf("products/%s", uuid.New().String())
 	bucketName := os.Getenv("STORAGE_BUCKET")
 	bucket, err := s.FireStorage.Bucket(bucketName)
 	if err != nil {
-		return "", err, nil
+		return "", nil, err
 	}
 
 	wc := bucket.Object(imageName).NewWriter(ctx)
 	if _, err := io.Copy(wc, image); err != nil {
-		return "", errors.New("error 3"), nil
+		return "", nil, err
 	}
 
 	if err := wc.Close(); err != nil {
-		return "", errors.New("error 4"), nil
+		return "", nil, err
 	}
 
 	o := bucket.Object(imageName)
 	if err := o.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
-		return "", errors.New("error 5"), nil
+		return "", nil, err
 	}
 
-	imageUrl := fmt.Sprintf("http://storage.googleapis.com/%s/%s", bucketName, imageName)
+	imageUrl := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, imageName)
 
-	return imageUrl, nil, o
+	return imageUrl, o, nil
 }
 
 func CreateProduct(ctx context.Context, product CreateProductModel, image multipart.File) (string, error) {
@@ -59,12 +58,12 @@ func CreateProduct(ctx context.Context, product CreateProductModel, image multip
 		}
 	}
 
-	imageName, err, o := UploadProductImage(ctx, image)
+	imageName, o, err := UploadProductImage(ctx, image)
 	if err != nil {
 		return "", err
 	}
 
-	docRef, _, err := s.FireStore.Collection(collectionName).Add(ctx, &ProductModel{
+	docRef, _, err := s.FireStore.Collection(collectionName).Add(ctx, &InsertProductModel{
 		Image:      imageName,
 		Name:       product.Name,
 		Price:      product.Price,
@@ -99,6 +98,7 @@ func GetAllProducts(ctx context.Context) ([]ProductModel, error) {
 
 		prod := ProductModel{
 			Id:         doc.Ref.ID,
+			Image:      doc.Data()["Image"].(string),
 			Name:       doc.Data()["Name"].(string),
 			Price:      doc.Data()["Price"].(float64),
 			Categories: doc.Data()["Categories"],
@@ -119,6 +119,7 @@ func GetProductById(ctx context.Context, id string) (*ProductModel, error) {
 
 	prod := &ProductModel{
 		Id:         doc.Ref.ID,
+		Image:      doc.Data()["Image"].(string),
 		Name:       doc.Data()["Name"].(string),
 		Price:      doc.Data()["Price"].(float64),
 		Categories: doc.Data()["Categories"],
