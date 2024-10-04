@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/ADahjer/egocomerce/database"
-	"github.com/ADahjer/egocomerce/pkg/category"
+	"github.com/ADahjer/egocomerce/pkg/cart"
 	"github.com/ADahjer/egocomerce/pkg/product"
 	"github.com/ADahjer/egocomerce/pkg/user"
 	"github.com/ADahjer/egocomerce/types"
@@ -35,17 +35,17 @@ func main() {
 
 	database.NewStore()
 	user.InitRepo()
-	category.InitRepo()
 	product.InitRepo()
+	cart.InitRepo()
 
 	api := e.Group("/v1")
 	user.RegisterRoutes(api)
 
-	categoryRouter := api.Group("/category")
-	category.RegisterRoutes(categoryRouter)
-
 	productRouter := api.Group("/product")
 	product.RegisterRoutes(productRouter)
+
+	cartRouter := api.Group("/cart")
+	cart.RegisterRoutes(cartRouter)
 
 	port := os.Getenv("API_PORT")
 

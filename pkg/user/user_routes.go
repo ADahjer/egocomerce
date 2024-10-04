@@ -36,14 +36,6 @@ func handleRegister(c echo.Context) error {
 		return types.NewPasswordError()
 	}
 
-	/* hash, err := utils.HashPassword(newUser.Password)
-
-	if err != nil {
-		return err
-	}
-
-	newUser.Password = hash */
-
 	userRecord, err := CreateUser(context.Background(), newUser.UserName, newUser.Email, newUser.Password)
 	if err != nil {
 		return err
