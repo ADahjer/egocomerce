@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"regexp"
 
@@ -9,6 +10,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	maxFileSize = 3 * 1024 * 1024 //3MB
 )
 
 func ApiErrorHandler(err error, c echo.Context) {
@@ -75,4 +80,17 @@ func ComparePassword(candidate string, hash []byte) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func ValidateImageType(fileHeader *multipart.FileHeader) (string, bool) {
+	mimeType := fileHeader.Header.Get("Content-Type")
+	if fileHeader.Size > maxFileSize {
+		return "maximun file size supported is 3MB", false
+	}
+
+	if mimeType != "image/png" && mimeType != "image/jpeg" && mimeType != "image/jpg" {
+		return "file types allowed are image/png and image/jpg", false
+	}
+
+	return "", true
 }
