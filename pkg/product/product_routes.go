@@ -2,6 +2,8 @@ package product
 
 import (
 	"context"
+	"fmt"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/ADahjer/egocomerce/types"
@@ -93,7 +95,44 @@ func handleDelete(c echo.Context) error {
 }
 
 func handleUpdate(c echo.Context) error {
-	return nil
+	updatedProduct := new(CreateProductModel)
+	file, err := c.FormFile("image")
+	id := c.Param("id")
+	var src multipart.File
+
+	if file != nil {
+		if err != nil {
+			return err
+		}
+
+		msg, validFile := utils.ValidateImageType(file)
+		if !validFile {
+			return types.NewApiError(http.StatusBadRequest, msg)
+		}
+
+		src, err = file.Open()
+		if err != nil {
+			return err
+		}
+
+		defer src.Close()
+
+	}
+
+	if err := c.Bind(updatedProduct); err != nil {
+		return err
+	}
+
+	if err := c.Validate(updatedProduct); err != nil {
+		return fmt.Errorf("a: %+v", err)
+	}
+
+	err = UpdateProduct(context.Background(), id, *updatedProduct, src)
+	if err != nil {
+		return fmt.Errorf("error xd: %+v", err)
+	}
+
+	return c.JSON(http.StatusOK, types.Map{"message": "Product updated", "product_id": id})
 }
 
 func handleGetByCategorie(c echo.Context) error {

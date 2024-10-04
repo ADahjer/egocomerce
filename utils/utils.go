@@ -88,7 +88,7 @@ func ValidateImageType(fileHeader *multipart.FileHeader) (string, bool) {
 		return "maximun file size supported is 3MB", false
 	}
 
-	if mimeType != "image/png" || mimeType == "image/jpg" {
+	if mimeType != "image/png" && mimeType != "image/jpeg" && mimeType != "image/jpg" {
 		return "file types allowed are image/png and image/jpg", false
 	}
 

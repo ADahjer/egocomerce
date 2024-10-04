@@ -8,9 +8,11 @@ import (
 	"os"
 	"strings"
 
+	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/storage"
 	"github.com/ADahjer/egocomerce/database"
 	"github.com/ADahjer/egocomerce/pkg/category"
+	"github.com/ADahjer/egocomerce/types"
 	"github.com/google/uuid"
 	"google.golang.org/api/iterator"
 )
@@ -191,4 +193,48 @@ func GetProductsByCategorie(ctx context.Context, categorieID string) ([]ProductM
 	}
 
 	return products, nil
+}
+
+func UpdateProduct(ctx context.Context, id string, updatedProduct CreateProductModel, image multipart.File) error {
+	ref, err := s.FireStore.Collection(collectionName).Doc(id).Get(ctx)
+	if err != nil {
+		return err
+	}
+
+	var existingProduct InsertProductModel
+	if err := ref.DataTo(&existingProduct); err != nil {
+		return err
+	}
+
+	// Check if there was send a new image to update
+	var newImage string
+	if image != nil {
+		newImage, _, err = UploadProductImage(ctx, image)
+		if err != nil {
+			return err
+		}
+
+		if existingProduct.Image != "" {
+			if _, err := deleteImage(ctx, existingProduct.Image); err != nil {
+				return err
+			}
+		}
+	}
+
+	updatedDate := types.Map{
+		"Name":       updatedProduct.Name,
+		"Price":      updatedProduct.Price,
+		"Categories": updatedProduct.Categories,
+	}
+
+	if newImage != "" {
+		updatedDate["Image"] = newImage
+	}
+
+	_, err = ref.Ref.Set(ctx, updatedDate, firestore.MergeAll)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
