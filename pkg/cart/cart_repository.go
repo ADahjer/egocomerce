@@ -103,7 +103,7 @@ func AddItemToCart(ctx context.Context, userId string, newItem NewCartItemModel)
 		}
 	}
 
-	if !productFound {
+	if !productFound && newItem.Quantity > 0 {
 		itemToInsert := &CartItemModel{
 			ProductID: newItem.ProductID,
 			Quantity:  newItem.Quantity,
@@ -112,10 +112,42 @@ func AddItemToCart(ctx context.Context, userId string, newItem NewCartItemModel)
 		cart.Items = append(cart.Items, *itemToInsert)
 	}
 
+	cart = updateTotal(cart)
+
 	cartDoc := s.FireStore.Collection(collectionName).Doc(cartId)
 	_, err = cartDoc.Set(ctx, cart)
 	if err != nil {
 		return fmt.Errorf("could not update the cart: %+v", err)
+	}
+
+	return nil
+}
+
+func updateTotal(cart *CartModel) *CartModel {
+	total := float64(0)
+
+	for i := range cart.Items {
+		total += cart.Items[i].Price
+	}
+
+	cart.Total = total
+
+	return cart
+}
+
+func VoidCart(ctx context.Context, userId string) error {
+	cart, id, err := getActiveCart(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	cart.Items = []CartItemModel{}
+	cart.Total = 0
+
+	cartDoc := s.FireStore.Collection(collectionName).Doc(id)
+	_, err = cartDoc.Set(ctx, cart)
+	if err != nil {
+		return err
 	}
 
 	return nil

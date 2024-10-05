@@ -27,6 +27,7 @@ func RegisterRoutes(router *echo.Group) {
 	router.GET("", handleGetActiveCart, user.AuthMiddleware)
 	router.GET("/:id", handleGetOne)
 	router.POST("", handleAddItem, user.AuthMiddleware)
+	router.DELETE("", hanldeDeleteCart, user.AuthMiddleware)
 }
 
 func handleAddItem(c echo.Context) error {
@@ -78,4 +79,19 @@ func handleGetActiveCart(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, types.Map{"active_cart_id": cartId, "active_cart_data": cart})
 
+}
+
+func hanldeDeleteCart(c echo.Context) error {
+	// check if the user's active cart its empty or not
+	userId, err := getUserId(c)
+	if err != nil {
+		return err
+	}
+
+	err = VoidCart(context.Background(), userId)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, types.Map{"cart_void": true})
 }

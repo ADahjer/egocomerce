@@ -13,6 +13,7 @@ type CartModel struct {
 	Items     []CartItemModel `json:"items"`
 	Status    string          `json:"status"`
 	CreatedAt time.Time       `json:"created_at"`
+	Total     float64         `json:"total"`
 }
 
 type NewCartItemModel struct {
