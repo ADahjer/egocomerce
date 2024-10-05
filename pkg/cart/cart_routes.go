@@ -14,7 +14,7 @@ func getUserId(c echo.Context) (string, error) {
 	userI := c.Get("user")
 
 	if userI == nil {
-		return "", types.NewApiError(http.StatusUnauthorized, "error getting user data")
+		return "", types.NewApiError(http.StatusUnauthorized, "error getting user data, token may have expired")
 	}
 
 	user := userI.(types.Map)
@@ -25,8 +25,9 @@ func getUserId(c echo.Context) (string, error) {
 
 func RegisterRoutes(router *echo.Group) {
 	router.GET("", handleGetActiveCart, user.AuthMiddleware)
-	router.GET("/:id", handleGetOne)
+	router.GET("/completed", handleGetCompletedCarts, user.AuthMiddleware)
 	router.POST("", handleAddItem, user.AuthMiddleware)
+	router.PUT("/complete", handleComplete, user.AuthMiddleware)
 	router.DELETE("", hanldeDeleteCart, user.AuthMiddleware)
 }
 
@@ -51,11 +52,6 @@ func handleAddItem(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, types.Map{"created": true})
-}
-
-// usefull to get previous carts (or completed)
-func handleGetOne(c echo.Context) error {
-	return nil
 }
 
 func handleGetActiveCart(c echo.Context) error {
@@ -94,4 +90,32 @@ func hanldeDeleteCart(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, types.Map{"cart_void": true})
+}
+
+func handleComplete(c echo.Context) error {
+	userId, err := getUserId(c)
+	if err != nil {
+		return err
+	}
+
+	err = CompleteCart(context.Background(), userId)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, types.Map{"cart_completed": true})
+}
+
+func handleGetCompletedCarts(c echo.Context) error {
+	userId, err := getUserId(c)
+	if err != nil {
+		return err
+	}
+
+	carts, err := GetCompletedCarts(context.Background(), userId)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, carts)
 }

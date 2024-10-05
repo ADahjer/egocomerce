@@ -152,3 +152,41 @@ func VoidCart(ctx context.Context, userId string) error {
 
 	return nil
 }
+
+func CompleteCart(ctx context.Context, userId string) error {
+	cart, id, err := getActiveCart(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	cart.Status = "completed"
+
+	cartDoc := s.FireStore.Collection(collectionName).Doc(id)
+	_, err = cartDoc.Set(ctx, cart)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetCompletedCarts(ctx context.Context, userId string) ([]*CartModel, error) {
+	query := s.FireStore.Collection(collectionName).Where("UserID", "==", userId).Where("Status", "==", "completed")
+	docs, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var completedCarts []*CartModel
+	for _, v := range docs {
+		var cart *CartModel
+		err := v.DataTo(&cart)
+		if err != nil {
+			return nil, err
+		}
+
+		completedCarts = append(completedCarts, cart)
+	}
+
+	return completedCarts, nil
+}
