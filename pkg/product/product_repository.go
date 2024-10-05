@@ -11,7 +11,6 @@ import (
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/storage"
 	"github.com/ADahjer/egocomerce/database"
-	"github.com/ADahjer/egocomerce/pkg/category"
 	"github.com/ADahjer/egocomerce/types"
 	"github.com/google/uuid"
 	"google.golang.org/api/iterator"
@@ -53,13 +52,6 @@ func UploadProductImage(ctx context.Context, image multipart.File) (string, *sto
 }
 
 func CreateProduct(ctx context.Context, product CreateProductModel, image multipart.File) (string, error) {
-
-	for _, c := range product.Categories {
-		_, err := category.GetCategoryById(ctx, c)
-		if err != nil {
-			return "", err
-		}
-	}
 
 	imageName, o, err := UploadProductImage(ctx, image)
 	if err != nil {

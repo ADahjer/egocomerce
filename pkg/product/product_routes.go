@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"strings"
 
 	"github.com/ADahjer/egocomerce/types"
 	"github.com/ADahjer/egocomerce/utils"
@@ -73,6 +74,11 @@ func handleCreate(c echo.Context) error {
 
 	if err := c.Validate(newProd); err != nil {
 		return err
+	}
+
+	// set all categories to lower case
+	for i, v := range newProd.Categories {
+		newProd.Categories[i] = strings.ToLower(v)
 	}
 
 	ref, err := CreateProduct(context.Background(), *newProd, src)
