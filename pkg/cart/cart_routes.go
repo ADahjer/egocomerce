@@ -2,6 +2,7 @@ package cart
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/ADahjer/egocomerce/pkg/user"
@@ -37,16 +38,20 @@ func handleAddItem(c echo.Context) error {
 		return err
 	}
 
-	newItem := new(NewCartItemModel)
-	if err := c.Bind(newItem); err != nil {
+	newItem := []NewCartItemModel{}
+	if err := c.Bind(&newItem); err != nil {
 		return err
 	}
 
-	if err := c.Validate(newItem); err != nil {
-		return err
+	log.Printf("%+v\n", newItem)
+
+	for _, item := range newItem {
+		if err := c.Validate(item); err != nil {
+			return err
+		}
 	}
 
-	err = AddItemToCart(context.Background(), userId, *newItem)
+	err = AddItemToCart(context.Background(), userId, newItem)
 	if err != nil {
 		return err
 	}

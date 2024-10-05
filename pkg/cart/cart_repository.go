@@ -70,49 +70,51 @@ func getActiveCart(ctx context.Context, userId string) (*CartModel, string, erro
 	return &cart, ref.Ref.ID, nil
 }
 
-func AddItemToCart(ctx context.Context, userId string, newItem NewCartItemModel) error {
+func AddItemToCart(ctx context.Context, userId string, newItems []NewCartItemModel) error {
 	cart, cartId, err := getActiveCart(ctx, userId)
 	if err != nil {
 		return err
 	}
 
-	// check if the product that will be added exists
-	prod, err := product.GetProductById(ctx, newItem.ProductID)
-	if err != nil {
-		return err
-	}
+	for _, newItem := range newItems {
+		// check if the product that will be added exists
+		prod, err := product.GetProductById(ctx, newItem.ProductID)
+		if err != nil {
+			return err
+		}
 
-	newPrice := prod.Price * float64(newItem.Quantity)
+		newPrice := prod.Price * float64(newItem.Quantity)
 
-	productFound := false
-	for i, item := range cart.Items {
-		if item.ProductID == newItem.ProductID {
-			productFound = true
-			newQuantity := cart.Items[i].Quantity + newItem.Quantity
+		productFound := false
+		for i, item := range cart.Items {
+			if item.ProductID == newItem.ProductID {
+				productFound = true
+				newQuantity := cart.Items[i].Quantity + newItem.Quantity
 
-			// if there will be no more of that item left, just remove it
-			if newQuantity <= 0 {
-				cart.Items = append(cart.Items[:i], cart.Items[i+1:]...)
+				// if there will be no more of that item left, just remove it
+				if newQuantity <= 0 {
+					cart.Items = append(cart.Items[:i], cart.Items[i+1:]...)
 
-			} else {
-				cart.Items[i].Quantity += newItem.Quantity
-				cart.Items[i].Price += newPrice
+				} else {
+					cart.Items[i].Quantity += newItem.Quantity
+					cart.Items[i].Price += newPrice
+				}
+				// TODO: Update the func to also reduce products, check if the quantity its <= 0
+				break
 			}
-			// TODO: Update the func to also reduce products, check if the quantity its <= 0
-			break
 		}
-	}
 
-	if !productFound && newItem.Quantity > 0 {
-		itemToInsert := &CartItemModel{
-			ProductID: newItem.ProductID,
-			Quantity:  newItem.Quantity,
-			Price:     newPrice,
+		if !productFound && newItem.Quantity > 0 {
+			itemToInsert := &CartItemModel{
+				ProductID: newItem.ProductID,
+				Quantity:  newItem.Quantity,
+				Price:     newPrice,
+			}
+			cart.Items = append(cart.Items, *itemToInsert)
 		}
-		cart.Items = append(cart.Items, *itemToInsert)
-	}
 
-	cart = updateTotal(cart)
+		cart = updateTotal(cart)
+	}
 
 	cartDoc := s.FireStore.Collection(collectionName).Doc(cartId)
 	_, err = cartDoc.Set(ctx, cart)
