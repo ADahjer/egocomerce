@@ -17,5 +17,5 @@ type CartModel struct {
 
 type NewCartItemModel struct {
 	ProductID string `json:"product_id" validate:"required"`
-	Quantity  int    `json:"quantity" validate:"min=1,required"`
+	Quantity  int    `json:"quantity" validate:"required"`
 }

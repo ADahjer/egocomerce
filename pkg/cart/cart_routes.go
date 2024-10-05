@@ -26,16 +26,16 @@ func getUserId(c echo.Context) (string, error) {
 func RegisterRoutes(router *echo.Group) {
 	router.GET("", handleGetActiveCart, user.AuthMiddleware)
 	router.GET("/:id", handleGetOne)
-	router.POST("", handleCreate, user.AuthMiddleware)
+	router.POST("", handleAddItem, user.AuthMiddleware)
 }
 
-func handleCreate(c echo.Context) error {
+func handleAddItem(c echo.Context) error {
 	userId, err := getUserId(c)
 	if err != nil {
 		return err
 	}
 
-	newItem := new(CartItemModel)
+	newItem := new(NewCartItemModel)
 	if err := c.Bind(newItem); err != nil {
 		return err
 	}

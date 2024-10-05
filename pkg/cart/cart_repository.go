@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ADahjer/egocomerce/database"
+	"github.com/ADahjer/egocomerce/pkg/product"
 )
 
 var s *database.Store
@@ -69,28 +70,46 @@ func getActiveCart(ctx context.Context, userId string) (*CartModel, string, erro
 	return &cart, ref.Ref.ID, nil
 }
 
-func AddItemToCart(ctx context.Context, userId string, newItem CartItemModel) error {
+func AddItemToCart(ctx context.Context, userId string, newItem NewCartItemModel) error {
 	cart, cartId, err := getActiveCart(ctx, userId)
 	if err != nil {
 		return err
 	}
 
-	// TODO: check if the product that will be added exists
+	// check if the product that will be added exists
+	prod, err := product.GetProductById(ctx, newItem.ProductID)
+	if err != nil {
+		return err
+	}
+
+	newPrice := prod.Price * float64(newItem.Quantity)
 
 	productFound := false
 	for i, item := range cart.Items {
 		if item.ProductID == newItem.ProductID {
-			cart.Items[i].Quantity += newItem.Quantity
-			cart.Items[i].Price += newItem.Price
 			productFound = true
+			newQuantity := cart.Items[i].Quantity + newItem.Quantity
 
+			// if there will be no more of that item left, just remove it
+			if newQuantity <= 0 {
+				cart.Items = append(cart.Items[:i], cart.Items[i+1:]...)
+
+			} else {
+				cart.Items[i].Quantity += newItem.Quantity
+				cart.Items[i].Price += newPrice
+			}
 			// TODO: Update the func to also reduce products, check if the quantity its <= 0
 			break
 		}
 	}
 
 	if !productFound {
-		cart.Items = append(cart.Items, newItem)
+		itemToInsert := &CartItemModel{
+			ProductID: newItem.ProductID,
+			Quantity:  newItem.Quantity,
+			Price:     newPrice,
+		}
+		cart.Items = append(cart.Items, *itemToInsert)
 	}
 
 	cartDoc := s.FireStore.Collection(collectionName).Doc(cartId)
