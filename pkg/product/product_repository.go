@@ -234,6 +234,7 @@ func UpdateProduct(ctx context.Context, id string, updatedProduct CreateProductM
 		"Name":       updatedProduct.Name,
 		"Price":      updatedProduct.Price,
 		"Categories": updatedProduct.Categories,
+		"Discount":   updatedProduct.Discount,
 	}
 
 	if newImage != "" {
