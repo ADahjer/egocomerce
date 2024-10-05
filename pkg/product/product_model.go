@@ -8,6 +8,7 @@ type CreateProductModel struct {
 	Name       string         `json:"name" form:"name" validate:"required,min=4"`
 	Price      float64        `json:"price" form:"price" validate:"required"`
 	Categories []string       `json:"categories" form:"categories" validate:"required,min=1"`
+	Discount   float64        `json:"discount" form:"discount"`
 }
 
 // what its saved to the DB
@@ -16,6 +17,7 @@ type InsertProductModel struct {
 	Name       string      `json:"name" form:"name" validate:"required,min=4"`
 	Price      float64     `json:"price" form:"price" validate:"required"`
 	Categories interface{} `json:"categories" form:"categories" validate:"required,min=1"`
+	Discount   float64     `json:"discount" form:"discount"`
 }
 
 // what we get from the DB
@@ -25,4 +27,5 @@ type ProductModel struct {
 	Name       string      `json:"name" validate:"required,min=4"`
 	Price      float64     `json:"price" validate:"required"`
 	Categories interface{} `json:"categories" validate:"required,min=1"`
+	Discount   float64     `json:"discount"`
 }

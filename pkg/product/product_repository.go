@@ -63,6 +63,7 @@ func CreateProduct(ctx context.Context, product CreateProductModel, image multip
 		Name:       product.Name,
 		Price:      product.Price,
 		Categories: product.Categories,
+		Discount:   product.Discount,
 	})
 	if err != nil {
 		if delErr := o.Delete(ctx); delErr != nil {
@@ -91,11 +92,19 @@ func GetAllProducts(ctx context.Context) ([]ProductModel, error) {
 			return nil, err
 		}
 
+		discount := float64(0)
+		haveDiscount := doc.Data()["Discount"]
+
+		if haveDiscount != nil {
+			discount = haveDiscount.(float64)
+		}
+
 		prod := ProductModel{
 			Id:         doc.Ref.ID,
 			Image:      doc.Data()["Image"].(string),
 			Name:       doc.Data()["Name"].(string),
 			Price:      doc.Data()["Price"].(float64),
+			Discount:   discount,
 			Categories: doc.Data()["Categories"],
 		}
 
@@ -112,12 +121,20 @@ func GetProductById(ctx context.Context, id string) (*ProductModel, error) {
 		return nil, err
 	}
 
+	discount := float64(0)
+	haveDiscount := doc.Data()["Discount"]
+
+	if haveDiscount != nil {
+		discount = haveDiscount.(float64)
+	}
+
 	prod := &ProductModel{
 		Id:         doc.Ref.ID,
 		Image:      doc.Data()["Image"].(string),
 		Name:       doc.Data()["Name"].(string),
 		Price:      doc.Data()["Price"].(float64),
 		Categories: doc.Data()["Categories"],
+		Discount:   discount,
 	}
 
 	return prod, nil
