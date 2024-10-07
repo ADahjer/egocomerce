@@ -14,11 +14,8 @@ func RegisterRoutes(router *echo.Group) {
 	router.POST("/register", handleRegister)
 	router.POST("/login", handleLogin)
 
-	auth := router.Group("")
-	auth.Use(AuthMiddleware)
-
-	auth.GET("/profile", handleGetProfile)
-	auth.POST("/admin/:id", handleSetAdmin, AdminMiddleware)
+	router.GET("/profile", handleGetProfile, AuthMiddleware)
+	router.POST("/admin/:id", handleSetAdmin, AuthMiddleware, AdminMiddleware)
 }
 
 func handleRegister(c echo.Context) error {
@@ -65,7 +62,7 @@ func handleLogin(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusAccepted, types.Map{"Status": "Loged in", "Token": token})
+	return c.JSON(http.StatusAccepted, types.Map{"Token": token["token"], "Claims": token["claims"]})
 }
 
 func handleGetProfile(c echo.Context) error {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -33,7 +34,7 @@ func CreateUser(ctx context.Context, userName, email, password string) (*auth.Us
 	return userRecord, nil
 }
 
-func LoginWithEmailAndPassword(email, password string) (string, error) {
+func LoginWithEmailAndPassword(email, password string) (types.Map, error) {
 	apiKey := os.Getenv("FIREBASE_API_KEY")
 	url := fmt.Sprintf("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=%s", apiKey)
 
@@ -50,7 +51,7 @@ func LoginWithEmailAndPassword(email, password string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	defer resp.Body.Close()
@@ -60,16 +61,28 @@ func LoginWithEmailAndPassword(email, password string) (string, error) {
 	json.NewDecoder(resp.Body).Decode(&result)
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("failed to login %v", result["error"])
+		return nil, fmt.Errorf("failed to login %v", result["error"])
 	}
 
 	token, ok := result["idToken"].(string)
+	id := result["localId"].(string)
+	log.Println(id)
 
-	if !ok {
-		return "", fmt.Errorf("unable to get token")
+	userInfo, err := GetUSerInfo(context.Background(), id)
+	if err != nil {
+		return nil, err
 	}
 
-	return token, nil
+	if !ok {
+		return nil, fmt.Errorf("unable to get token")
+	}
+
+	tokenWithClaims := types.Map{
+		"token":  token,
+		"claims": userInfo.CustomClaims,
+	}
+
+	return tokenWithClaims, nil
 
 }
 
