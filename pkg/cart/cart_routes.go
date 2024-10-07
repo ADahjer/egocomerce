@@ -27,7 +27,7 @@ func getUserId(c echo.Context) (string, error) {
 func RegisterRoutes(router *echo.Group) {
 	router.GET("", handleGetActiveCart, user.AuthMiddleware)
 	router.GET("/completed", handleGetCompletedCarts, user.AuthMiddleware)
-	router.POST("", handleAddItem, user.AuthMiddleware)
+	router.POST("", handleAddItem, user.AuthMiddleware, ActiveCartMiddleware)
 	router.PUT("/complete", handleComplete, user.AuthMiddleware)
 	router.DELETE("", hanldeDeleteCart, user.AuthMiddleware)
 }
@@ -83,7 +83,6 @@ func handleGetActiveCart(c echo.Context) error {
 }
 
 func hanldeDeleteCart(c echo.Context) error {
-	// check if the user's active cart its empty or not
 	userId, err := getUserId(c)
 	if err != nil {
 		return err
